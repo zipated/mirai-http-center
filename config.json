@@ -8,7 +8,12 @@
     "qq": 1449192594
   },
   "websocket": {
-    "baseURL": "ws://127.0.0.1:8080",
-    "postURL": "http://127.0.0.1/"
-  }
+    "baseURL": "ws://127.0.0.1:8080"
+  },
+  "schemas": [
+    {
+      "schema": {},
+      "postURL": "http://127.0.0.1/"
+    }
+  ]
 }
