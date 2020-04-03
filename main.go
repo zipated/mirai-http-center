@@ -3,6 +3,7 @@ package main
 func init() {
 	initConfig()
 	initSession()
+	initSchema()
 }
 
 func main() {

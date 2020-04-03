@@ -27,9 +27,9 @@ func auth() {
 	}
 	code := gjson.GetBytes(resp.Body(), "code")
 	if code.Exists() && code.Value() == 0.0 {
+		session = gjson.GetBytes(resp.Body(), "session").String()
 		log.Info().Msg("Auth succeed.")
 		log.Debug().Msgf("%v", resp)
-		session = gjson.GetBytes(resp.Body(), "session").String()
 		return
 	}
 	log.Debug().Msgf("%v", resp)

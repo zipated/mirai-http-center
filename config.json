@@ -9,5 +9,12 @@
   },
   "websocket": {
     "baseURL": "ws://127.0.0.1:8080"
-  }
+  },
+  "schemas": [
+    {
+      "name": "default",
+      "schema": {},
+      "postURL": "https://api.uukit.com/req/mock/48cf3ek"
+    }
+  ]
 }

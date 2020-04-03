@@ -11,11 +11,11 @@ var wsConn *websocket.Conn
 
 func initWebsocket(wsEnd chan int) {
 	enableWebsocket()
+	log.Info().Msg("Connecting websocket...")
 	var err error
 	wsConn, _, err = websocket.DefaultDialer.Dial(cfg.Get("websocket.baseURL").String()+"/all?sessionKey="+session, nil)
 	if err != nil {
-		log.Error().Msgf("Websocket erred. %v", err)
-		log.Info().Msg("Reconnecting websocket...")
+		log.Error().Msgf("Connect websocket erred. %v", err)
 		wsEnd <- 1
 		return
 	}
@@ -51,15 +51,15 @@ func startReadMessage(wsEnd chan int) {
 	for {
 		messageType, message, err := wsConn.ReadMessage()
 		if err != nil {
-			log.Error().Msgf("Websocket erred. %v", err)
-			log.Info().Msg("Reconnecting websocket...")
 			wsConn.Close()
+			log.Error().Msgf("Listen websocket erred. %v", err)
 			wsEnd <- 1
 			return
 		}
 		if messageType == websocket.TextMessage {
 			log.Info().Msg("Receive message from websocket.")
 			log.Debug().Msgf("%s", message)
+			messageHandler(message)
 		}
 	}
 }
