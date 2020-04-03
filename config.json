@@ -5,7 +5,7 @@
   "mirai": {
     "authKey": "1234567890",
     "apiBaseURL": "http://127.0.0.1:8080",
-    "qq": 1449192594
+    "qq": 1234567890
   },
   "websocket": {
     "baseURL": "ws://127.0.0.1:8080"
@@ -14,7 +14,7 @@
     {
       "name": "default",
       "schema": {},
-      "postURL": "https://api.uukit.com/req/mock/48cf3ek"
+      "postURL": "http://127.0.0.1"
     }
   ]
 }
