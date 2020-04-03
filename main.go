@@ -7,11 +7,11 @@ func init() {
 
 func main() {
 	wsEnd := make(chan int)
-	initWebsocket(wsEnd)
+	go initWebsocket(wsEnd)
 	for {
 		select {
 		case <-wsEnd:
-			initWebsocket(wsEnd)
+			go initWebsocket(wsEnd)
 		}
 	}
 }

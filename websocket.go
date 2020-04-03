@@ -12,7 +12,7 @@ var wsConn *websocket.Conn
 func initWebsocket(wsEnd chan int) {
 	enableWebsocket()
 	var err error
-	wsConn, _, err = websocket.DefaultDialer.Dial(cfg.MustValue("websocket", "baseURL")+"/all?sessionKey="+session, nil)
+	wsConn, _, err = websocket.DefaultDialer.Dial(cfg.Get("websocket.baseURL").String()+"/all?sessionKey="+session, nil)
 	if err != nil {
 		log.Error().Msgf("Websocket erred. %v", err)
 		log.Info().Msg("Reconnecting websocket...")
@@ -32,7 +32,7 @@ func enableWebsocket() {
 			"sessionKey":      session,
 			"enableWebsocket": true,
 		}).
-		Post(cfg.MustValue("mirai", "apiBaseURL") + "/config")
+		Post(cfg.Get("mirai.apiBaseURL").String() + "/config")
 	if err != nil {
 		log.Error().Msgf("Enable websocket erred. %v", err)
 		return

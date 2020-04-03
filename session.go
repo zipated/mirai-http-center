@@ -19,9 +19,9 @@ func auth() {
 	resp, err := client.R().
 		SetHeader("Content-Type", "application/json").
 		SetBody(map[string]interface{}{
-			"authKey": cfg.MustValue("mirai", "authKey"),
+			"authKey": cfg.Get("mirai.authKey").String(),
 		}).
-		Post(cfg.MustValue("mirai", "apiBaseURL") + "/auth")
+		Post(cfg.Get("mirai.apiBaseURL").String() + "/auth")
 	if err != nil {
 		log.Fatal().Msgf("Auth failed. %v", err)
 	}
@@ -43,9 +43,9 @@ func verify() {
 		SetHeader("Content-Type", "application/json").
 		SetBody(map[string]interface{}{
 			"sessionKey": session,
-			"qq":         cfg.MustValue("mirai", "qq"),
+			"qq":         cfg.Get("mirai.qq").Int(),
 		}).
-		Post(cfg.MustValue("mirai", "apiBaseURL") + "/verify")
+		Post(cfg.Get("mirai.apiBaseURL").String() + "/verify")
 	if err != nil {
 		log.Fatal().Msgf("Verify failed. %v", err)
 	}

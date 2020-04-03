@@ -1,29 +1,35 @@
 package main
 
 import (
+	"io/ioutil"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
-	"github.com/unknwon/goconfig"
+	"github.com/tidwall/gjson"
 )
 
-var cfg *goconfig.ConfigFile
+var cfg gjson.Result
 
 func initConfig() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
-	var err error
-	cfg, err = goconfig.LoadConfigFile("config.cfg")
+	file, err := os.Open("config.json")
 	if err != nil {
-		log.Fatal().Msgf("Init config failed. %v", err)
+		log.Fatal().Msgf("Open config file failed. %v", err)
 	}
-	setGlobalLogLevel()
+	cfgBytes, _ := ioutil.ReadAll(file)
+	if gjson.ValidBytes(cfgBytes) {
+		cfg = gjson.ParseBytes(cfgBytes)
+		setGlobalLogLevel()
+	} else {
+		log.Fatal().Msg("Config file format error.")
+	}
 }
 
 func setGlobalLogLevel() {
-	switch strings.ToLower(cfg.MustValue("log", "level")) {
+	switch strings.ToLower(cfg.Get("log.level").String()) {
 	case "trace":
 		zerolog.SetGlobalLevel(zerolog.TraceLevel)
 	case "debug":

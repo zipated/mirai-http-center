@@ -7,5 +7,4 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/rs/zerolog v1.18.0
 	github.com/tidwall/gjson v1.6.0
-	github.com/unknwon/goconfig v0.0.0-20191126170842-860a72fb44fd
 )
