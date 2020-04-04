@@ -13,6 +13,6 @@ mirai-api-http 插件的前置代理。
 
 - [x] 支持接收 websocket 数据并通过 http 转发。
 - [x] 支持使用 schema 筛选收到的消息。
-- [ ] 支持接收 http 请求并转发至 mirai-api-http 插件。
+- [x] 支持接收 http 请求并转发至 mirai-api-http 插件。
 - [x] 全部功能可配置。
 - [ ] Docker 部署。

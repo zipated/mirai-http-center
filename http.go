@@ -36,6 +36,9 @@ func router(e *echo.Echo) {
 	// 发送图片消息（通过URL）
 	e.POST("/sendImageMessage", handleStandardPostJSONRequest)
 
+	// 图片文件上传
+	e.POST("/uploadImage", handleUploadImage)
+
 	// 撤回消息
 	e.POST("/recall", handleStandardPostJSONRequest)
 
@@ -123,6 +126,48 @@ func handleStandardGetRequest(ctx echo.Context) error {
 	resp, err := client.R().
 		SetQueryParam("sessionKey", session).
 		Get(cfg.Get("mirai.apiBaseURL").String() + ctx.Path() + "?" + ctx.QueryString())
+	if err != nil {
+		log.Error().Msgf("Forward http request erred. %v", err)
+		return ctx.String(http.StatusInternalServerError, err.Error())
+	}
+	if gjson.ValidBytes(resp.Body()) {
+		log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+		log.Debug().Msgf("%v", resp)
+		return ctx.JSON(resp.StatusCode(), gjson.ParseBytes(resp.Body()).Value())
+	}
+	log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+	log.Debug().Msgf("%v", resp)
+	return ctx.String(resp.StatusCode(), string(resp.Body()))
+}
+
+func handleUploadImage(ctx echo.Context) error {
+	log.Info().Msgf(`Receive upload image request from "%v" to "%v".`, ctx.RealIP(), ctx.Path())
+	t := ctx.FormValue("type")
+	if t == "" {
+		log.Error().Msgf("No image type specified.")
+		return ctx.NoContent(http.StatusBadRequest)
+	}
+	file, err := ctx.FormFile("img")
+	if err != nil {
+		log.Error().Msgf("Read upload image file erred. %v", err)
+		return err
+	}
+	src, err := file.Open()
+	if err != nil {
+		log.Error().Msgf("Open upload image file erred. %v", err)
+		return err
+	}
+	defer src.Close()
+	client := resty.New()
+	client.SetCloseConnection(true)
+	resp, err := client.R().
+		SetHeader("Content-Type", "multipart/form-data").
+		SetFormData(map[string]string{
+			"sessionKey": session,
+			"type":       t,
+		}).
+		SetFileReader("img", file.Filename, src).
+		Post(cfg.Get("mirai.apiBaseURL").String() + ctx.Path())
 	if err != nil {
 		log.Error().Msgf("Forward http request erred. %v", err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
