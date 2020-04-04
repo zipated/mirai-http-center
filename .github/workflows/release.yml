@@ -1,0 +1,121 @@
+name: Release Workflow
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - id: checkout
+        name: Checkout
+        uses: actions/checkout@master
+      - id: setup_go
+        name: Setup go
+        uses: actions/setup-go@master
+        with:
+          go-version: '1.14'
+      - id: go_mod
+        name: go mod download
+        run: go mod download
+      - id: build
+        name: Build
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -o mirai-http-center_linux_32
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o mirai-http-center_linux_64
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o mirai-http-center_linux_armv6
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -o mirai-http-center_linux_armv7
+          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o mirai-http-center_linux_arm64
+          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o mirai-http-center_macos
+          CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -o mirai-http-center_windows_32.exe
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o mirai-http-center_windows_64.exe
+      - id: compress
+        name: Compress
+        run: |
+          zip mirai-http-center_linux_32.zip mirai-http-center_linux_32 config.json
+          zip mirai-http-center_linux_64.zip mirai-http-center_linux_64 config.json
+          zip mirai-http-center_linux_arm.zip mirai-http-center_linux_armv6 mirai-http-center_linux_armv7 config.json
+          zip mirai-http-center_linux_arm64.zip mirai-http-center_linux_arm64 config.json
+          zip mirai-http-center_macos.zip mirai-http-center_macos config.json
+          zip mirai-http-center_windows_32.zip mirai-http-center_windows_32.exe config.json
+          zip mirai-http-center_windows_64.zip mirai-http-center_windows_64.exe config.json
+      - id: create_release
+        name: Create Release
+        uses: actions/create-release@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+      - id: upload_release_asset_mirai-http-center_linux_32
+        name: Upload mirai-http-center_linux_32.zip
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: mirai-http-center_linux_32.zip
+          asset_name: mirai-http-center_linux_32.zip
+          asset_content_type: application/zip
+      - id: upload_release_asset_mirai-http-center_linux_64
+        name: Upload mirai-http-center_linux_64.zip
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: mirai-http-center_linux_64.zip
+          asset_name: mirai-http-center_linux_64.zip
+          asset_content_type: application/zip
+      - id: upload_release_asset_mirai-http-center_linux_arm
+        name: Upload mirai-http-center_linux_arm.zip
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: mirai-http-center_linux_arm.zip
+          asset_name: mirai-http-center_linux_arm.zip
+          asset_content_type: application/zip
+      - id: upload_release_asset_mirai-http-center_linux_arm64
+        name: Upload mirai-http-center_linux_arm64.zip
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: mirai-http-center_linux_arm64.zip
+          asset_name: mirai-http-center_linux_arm64.zip
+          asset_content_type: application/zip
+      - id: upload_release_asset_mirai-http-center_macos
+        name: Upload mirai-http-center_macos.zip
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: mirai-http-center_macos.zip
+          asset_name: mirai-http-center_macos.zip
+          asset_content_type: application/zip
+      - id: upload_release_asset_mirai-http-center_windows_32
+        name: Upload mirai-http-center_windows_32.zip
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: mirai-http-center_windows_32.zip
+          asset_name: mirai-http-center_windows_32.zip
+          asset_content_type: application/zip
+      - id: upload_release_asset_mirai-http-center_windows_64
+        name: Upload mirai-http-center_windows_64.zip
+        uses: actions/upload-release-asset@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: mirai-http-center_windows_64.zip
+          asset_name: mirai-http-center_windows_64.zip
+          asset_content_type: application/zip
