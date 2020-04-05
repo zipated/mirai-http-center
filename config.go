@@ -24,9 +24,9 @@ func initConfig() {
 	cfgBytes, _ := ioutil.ReadAll(file)
 	if gjson.ValidBytes(cfgBytes) {
 		cfg = gjson.ParseBytes(cfgBytes)
+		setGlobalLogLevel()
 		log.Info().Msg("Load config file succeed.")
 		log.Debug().Msgf("Config:\n%s", cfgBytes)
-		setGlobalLogLevel()
 	} else {
 		log.Fatal().Msg("Config file format error.")
 	}
