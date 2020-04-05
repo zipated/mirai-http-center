@@ -12,18 +12,31 @@ jobs:
       - id: checkout
         name: Checkout
         uses: actions/checkout@master
-      - id: build_version
-        name: Build ${{ github.ref }}
-        run: docker build -t tarocch1/mirai-http-center:${{ github.ref }} .
+      - id: setup_nodejs
+        name: Setup node.js
+        uses: actions/setup-node@master
+        with:
+          node-version: 12
+      - id: npm_ci
+        name: npm ci
+        run: npm ci
+      - id: tag_name
+        name: Get tag name
+        uses: ./.github/actions/tag-name
+        with:
+          ref: ${{ github.ref }}
+      - id: build
+        name: Build ${{ steps.tag_name.outputs.tag }}
+        run: docker build -t tarocch1/mirai-http-center:${{ steps.tag_name.outputs.tag }} .
       - id: build_latest
         name: Build latest
         run: docker build -t tarocch1/mirai-http-center:latest .
       - id: login
         name: Docker login
         run: docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_ACCESSTOKEN }}"
-      - id: push_version
-        name: Push ${{ github.ref }}
-        run: docker push tarocch1/mirai-http-center:${{ github.ref }}
+      - id: push
+        name: Push ${{ steps.tag_name.outputs.tag }}
+        run: docker push tarocch1/mirai-http-center:${{ steps.tag_name.outputs.tag }}
       - id: push_latest
-        name: Push ${{ github.ref }}
+        name: Push latest
         run: docker push tarocch1/mirai-http-center:latest
