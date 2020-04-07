@@ -83,8 +83,24 @@ func router(e *echo.Echo) {
 
 	// 获取群员资料
 	e.GET("/memberInfo", handleStandardGetRequest)
+
+	// 获取指定Session的配置
+	e.GET("/config", handleStandardGetRequest)
+
+	// 设置指定Session的配置
+	e.POST("/config", handleStandardPostJSONRequest)
+
+	// 注册指令
+	e.POST("/command/register", handleAuthKeyPostJSONRequest)
+
+	// 发送指令
+	e.POST("/command/send", handleAuthKeyPostJSONRequest)
+
+	// 获取Mangers
+	e.GET("/managers", handleGetRequest)
 }
 
+// post + sessionKey
 func handleStandardPostJSONRequest(ctx echo.Context) error {
 	log.Info().Msgf(`Receive post http request from "%v" to "%v".`, ctx.RealIP(), ctx.Path())
 	bodyBytes, _ := ioutil.ReadAll(ctx.Request().Body)
@@ -92,7 +108,8 @@ func handleStandardPostJSONRequest(ctx echo.Context) error {
 	if gjson.ValidBytes(bodyBytes) {
 		data, setBytesErr := sjson.SetBytes(bodyBytes, "sessionKey", session)
 		if setBytesErr != nil {
-			log.Warn().Msg("Http request received is not standard json.")
+			log.Warn().Msg("Http request received is not object json.")
+			log.Debug().Msgf("%v", setBytesErr)
 			return ctx.NoContent(http.StatusBadRequest)
 		}
 		client := resty.New()
@@ -103,6 +120,7 @@ func handleStandardPostJSONRequest(ctx echo.Context) error {
 			Post(cfg.Get("mirai.apiBaseURL").String() + ctx.Path())
 		if err != nil {
 			log.Error().Msgf("Forward http request erred. %v", err)
+			log.Debug().Msgf("%v", err)
 			return ctx.String(http.StatusInternalServerError, err.Error())
 		}
 		if gjson.ValidBytes(resp.Body()) {
@@ -118,6 +136,43 @@ func handleStandardPostJSONRequest(ctx echo.Context) error {
 	return ctx.NoContent(http.StatusBadRequest)
 }
 
+// post + authKey
+func handleAuthKeyPostJSONRequest(ctx echo.Context) error {
+	log.Info().Msgf(`Receive post http request from "%v" to "%v".`, ctx.RealIP(), ctx.Path())
+	bodyBytes, _ := ioutil.ReadAll(ctx.Request().Body)
+	log.Debug().Msgf("%s", bodyBytes)
+	if gjson.ValidBytes(bodyBytes) {
+		data, setBytesErr := sjson.SetBytes(bodyBytes, "authKey", cfg.Get("mirai.authKey").String())
+		if setBytesErr != nil {
+			log.Warn().Msg("Http request received is not object json.")
+			log.Debug().Msgf("%v", setBytesErr)
+			return ctx.NoContent(http.StatusBadRequest)
+		}
+		client := resty.New()
+		client.SetCloseConnection(true)
+		resp, err := client.R().
+			SetHeader("Content-Type", "application/json").
+			SetBody(data).
+			Post(cfg.Get("mirai.apiBaseURL").String() + ctx.Path())
+		if err != nil {
+			log.Error().Msgf("Forward http request erred. %v", err)
+			log.Debug().Msgf("%v", err)
+			return ctx.String(http.StatusInternalServerError, err.Error())
+		}
+		if gjson.ValidBytes(resp.Body()) {
+			log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+			log.Debug().Msgf("%v", resp)
+			return ctx.JSON(resp.StatusCode(), gjson.ParseBytes(resp.Body()).Value())
+		}
+		log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+		log.Debug().Msgf("%v", resp)
+		return ctx.String(resp.StatusCode(), string(resp.Body()))
+	}
+	log.Warn().Msg("Http request received is not standard json.")
+	return ctx.NoContent(http.StatusBadRequest)
+}
+
+// get + sessionKey
 func handleStandardGetRequest(ctx echo.Context) error {
 	log.Info().Msgf(`Receive get http request from "%v" to "%v".`, ctx.RealIP(), ctx.Path())
 	log.Debug().Msgf("%v", ctx.QueryString())
@@ -126,6 +181,27 @@ func handleStandardGetRequest(ctx echo.Context) error {
 	resp, err := client.R().
 		SetQueryParam("sessionKey", session).
 		Get(cfg.Get("mirai.apiBaseURL").String() + ctx.Path() + "?" + ctx.QueryString())
+	if err != nil {
+		log.Error().Msgf("Forward http request erred. %v", err)
+		return ctx.String(http.StatusInternalServerError, err.Error())
+	}
+	if gjson.ValidBytes(resp.Body()) {
+		log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+		log.Debug().Msgf("%v", resp)
+		return ctx.JSON(resp.StatusCode(), gjson.ParseBytes(resp.Body()).Value())
+	}
+	log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+	log.Debug().Msgf("%v", resp)
+	return ctx.String(resp.StatusCode(), string(resp.Body()))
+}
+
+// get
+func handleGetRequest(ctx echo.Context) error {
+	log.Info().Msgf(`Receive get http request from "%v" to "%v".`, ctx.RealIP(), ctx.Path())
+	log.Debug().Msgf("%v", ctx.QueryString())
+	client := resty.New()
+	client.SetCloseConnection(true)
+	resp, err := client.R().Get(cfg.Get("mirai.apiBaseURL").String() + ctx.Path() + "?" + ctx.QueryString())
 	if err != nil {
 		log.Error().Msgf("Forward http request erred. %v", err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
