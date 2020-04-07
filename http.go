@@ -124,15 +124,15 @@ func handleStandardPostJSONRequest(ctx echo.Context) error {
 			return ctx.String(http.StatusInternalServerError, err.Error())
 		}
 		if gjson.ValidBytes(resp.Body()) {
-			log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+			log.Info().Msgf(`Forward post http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
 			log.Debug().Msgf("%v", resp)
 			return ctx.JSON(resp.StatusCode(), gjson.ParseBytes(resp.Body()).Value())
 		}
-		log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+		log.Info().Msgf(`Forward post http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
 		log.Debug().Msgf("%v", resp)
 		return ctx.String(resp.StatusCode(), string(resp.Body()))
 	}
-	log.Warn().Msg("Http request received is not standard json.")
+	log.Warn().Msg("Http post request received is not standard json.")
 	return ctx.NoContent(http.StatusBadRequest)
 }
 
@@ -155,16 +155,16 @@ func handleAuthKeyPostJSONRequest(ctx echo.Context) error {
 			SetBody(data).
 			Post(cfg.Get("mirai.apiBaseURL").String() + ctx.Path())
 		if err != nil {
-			log.Error().Msgf("Forward http request erred. %v", err)
+			log.Error().Msgf("Forward post http request erred. %v", err)
 			log.Debug().Msgf("%v", err)
 			return ctx.String(http.StatusInternalServerError, err.Error())
 		}
 		if gjson.ValidBytes(resp.Body()) {
-			log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+			log.Info().Msgf(`Forward post http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
 			log.Debug().Msgf("%v", resp)
 			return ctx.JSON(resp.StatusCode(), gjson.ParseBytes(resp.Body()).Value())
 		}
-		log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+		log.Info().Msgf(`Forward post http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
 		log.Debug().Msgf("%v", resp)
 		return ctx.String(resp.StatusCode(), string(resp.Body()))
 	}
@@ -182,15 +182,15 @@ func handleStandardGetRequest(ctx echo.Context) error {
 		SetQueryParam("sessionKey", session).
 		Get(cfg.Get("mirai.apiBaseURL").String() + ctx.Path() + "?" + ctx.QueryString())
 	if err != nil {
-		log.Error().Msgf("Forward http request erred. %v", err)
+		log.Error().Msgf("Forward get http request erred. %v", err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
 	if gjson.ValidBytes(resp.Body()) {
-		log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+		log.Info().Msgf(`Forward get http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
 		log.Debug().Msgf("%v", resp)
 		return ctx.JSON(resp.StatusCode(), gjson.ParseBytes(resp.Body()).Value())
 	}
-	log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+	log.Info().Msgf(`Forward get http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
 	log.Debug().Msgf("%v", resp)
 	return ctx.String(resp.StatusCode(), string(resp.Body()))
 }
@@ -203,15 +203,15 @@ func handleGetRequest(ctx echo.Context) error {
 	client.SetCloseConnection(true)
 	resp, err := client.R().Get(cfg.Get("mirai.apiBaseURL").String() + ctx.Path() + "?" + ctx.QueryString())
 	if err != nil {
-		log.Error().Msgf("Forward http request erred. %v", err)
+		log.Error().Msgf("Forward get http request erred. %v", err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
 	if gjson.ValidBytes(resp.Body()) {
-		log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+		log.Info().Msgf(`Forward get http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
 		log.Debug().Msgf("%v", resp)
 		return ctx.JSON(resp.StatusCode(), gjson.ParseBytes(resp.Body()).Value())
 	}
-	log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+	log.Info().Msgf(`Forward get http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
 	log.Debug().Msgf("%v", resp)
 	return ctx.String(resp.StatusCode(), string(resp.Body()))
 }
@@ -245,15 +245,15 @@ func handleUploadImage(ctx echo.Context) error {
 		SetFileReader("img", file.Filename, src).
 		Post(cfg.Get("mirai.apiBaseURL").String() + ctx.Path())
 	if err != nil {
-		log.Error().Msgf("Forward http request erred. %v", err)
+		log.Error().Msgf("Forward upload image request erred. %v", err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
 	}
 	if gjson.ValidBytes(resp.Body()) {
-		log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+		log.Info().Msgf(`Forward upload image request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
 		log.Debug().Msgf("%v", resp)
 		return ctx.JSON(resp.StatusCode(), gjson.ParseBytes(resp.Body()).Value())
 	}
-	log.Info().Msgf(`Forward http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
+	log.Info().Msgf(`Forward upload image request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
 	log.Debug().Msgf("%v", resp)
 	return ctx.String(resp.StatusCode(), string(resp.Body()))
 }
