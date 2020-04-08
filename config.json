@@ -5,18 +5,25 @@
   "mirai": {
     "authKey": "1234567890",
     "apiBaseURL": "http://127.0.0.1:8080",
+    "wsBaseURL": "ws://127.0.0.1:8080",
     "qq": 1234567890
   },
-  "websocket": {
-    "baseURL": "ws://127.0.0.1:8080"
+  "schemas": {
+    "/all": [
+      {
+        "name": "default",
+        "schema": {},
+        "postURL": "http://127.0.0.1"
+      }
+    ],
+    "/command": [
+      {
+        "name": "default",
+        "schema": {},
+        "postURL": "http://127.0.0.1"
+      }
+    ]
   },
-  "schemas": [
-    {
-      "name": "default",
-      "schema": {},
-      "postURL": "http://127.0.0.1"
-    }
-  ],
   "http": {
     "host": "0.0.0.0:80",
     "authKey": "1234567890"

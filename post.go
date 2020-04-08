@@ -6,19 +6,20 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 )
 
-func messageHandler(message []byte) {
+func messageHandler(message []byte, channel string) {
+	schemas := schemasMap[channel]
 	messageLoader := gojsonschema.NewBytesLoader(message)
 	for _, schema := range schemas {
 		if result, err := schema.schema.Validate(messageLoader); err != nil {
-			log.Warn().Msgf(`Validate message with schema "%v" erred. %v`, schema.name, err)
+			log.Warn().Msgf(`Validate message from channel "%v" with schema "%v" erred. %v`, channel, schema.name, err)
 		} else if result.Valid() {
-			log.Info().Msgf(`Message validated with schema "%v".`, schema.name)
-			postMessage(message, schema.postURL)
+			log.Info().Msgf(`Message from channel "%v" validated with schema "%v".`, channel, schema.name)
+			postMessage(message, channel, schema.postURL)
 		}
 	}
 }
 
-func postMessage(message []byte, postURL string) {
+func postMessage(message []byte, channel, postURL string) {
 	client := resty.New()
 	client.SetCloseConnection(true)
 	resp, err := client.R().
@@ -26,9 +27,9 @@ func postMessage(message []byte, postURL string) {
 		SetBody(message).
 		Post(postURL)
 	if err != nil {
-		log.Error().Msgf("Post message erred. %v", err)
+		log.Error().Msgf(`Post message from channel "%v" erred. %v`, channel, err)
 		return
 	}
-	log.Info().Msgf(`Post message to "%v", return code %v.`, postURL, resp.StatusCode())
+	log.Info().Msgf(`Post message from channel "%v" to "%v", return code %v.`, channel, postURL, resp.StatusCode())
 	log.Debug().Msgf("%v", resp)
 }

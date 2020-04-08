@@ -26,23 +26,30 @@ mirai-api-http 插件的前置代理。
 ``` jsonc
 {
   "log": {
-    "level": "info" // 日志等级，包含 trace、debug、info、warn、error、fatal 和 panic，默认为 info 
+    "level": "info" // 日志等级，包含 trace、debug、info、warn、error、fatal 和 panic，默认为 info
   },
   "mirai": {
     "authKey": "1234567890", // mirai-api-http 的 authKey
     "apiBaseURL": "http://127.0.0.1:8080", // mirai-api-http 的 api 地址
+    "wsBaseURL": "ws://127.0.0.1:8080", // mirai-api-http 的 websocket 地址
     "qq": 1234567890 // bot qq 号
   },
-  "websocket": {
-    "baseURL": "ws://127.0.0.1:8080" // mirai-api-http 的 websocket 地址
+  "schemas": {
+    "/all": [ // 用于筛选 /all 频道（接收事件和消息）消息的 shcema 列表，至少应存在一个，否则不会有消息上报
+      {
+        "name": "default", // schema 名称
+        "schema": {}, // schema 内容
+        "postURL": "http://127.0.0.1" // 匹配到 chema 时的数据上报地址
+      }
+    ],
+    "/command": [ // 用于筛选 /command 频道（接收指令）消息的 shcema 列表，至少应存在一个，否则不会有消息上报
+      {
+        "name": "default", // schema 名称
+        "schema": {}, // schema 内容
+        "postURL": "http://127.0.0.1" // 匹配到 chema 时的数据上报地址
+      }
+    ]
   },
-  "schemas": [ // 用于筛选消息的 shcema，至少应存在一个，否则不会有消息上报
-    {
-      "name": "default", // schema 名称
-      "schema": {}, // schema 内容
-      "postURL": "http://127.0.0.1" // 匹配到 chema 时的数据上报地址
-    }
-  ],
   "http": {
     "host": "0.0.0.0:80", // 监听 http 请求的地址
     "authKey": "1234567890" // 用于 http 请求认证的 key

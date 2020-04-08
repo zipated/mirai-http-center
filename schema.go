@@ -11,14 +11,21 @@ type schema struct {
 	postURL string
 }
 
-var schemas []*schema
+var schemasMap map[string][]*schema
 
 func initSchema() {
-	for _, item := range cfg.Get("schemas").Array() {
+	schemasMap = make(map[string][]*schema)
+	loadSchema("/all")
+	loadSchema("/command")
+}
+
+func loadSchema(channel string) {
+	var schemas []*schema
+	for _, item := range cfg.Get("schemas." + channel).Array() {
 		loader := gojsonschema.NewStringLoader(item.Get("schema").Raw)
 		s, err := gojsonschema.NewSchema(loader)
 		if err != nil {
-			log.Warn().Msgf(`Load schema "%v" error. %v`, item.Get("name").String(), err)
+			log.Warn().Msgf(`Load schema "%v" for channel "%v" error. %v`, item.Get("name").String(), channel, err)
 		} else {
 			schema := &schema{
 				name:    item.Get("name").String(),
@@ -26,8 +33,9 @@ func initSchema() {
 				postURL: item.Get("postURL").String(),
 			}
 			schemas = append(schemas, schema)
-			log.Info().Msgf(`Load schema "%v" succeed.`, item.Get("name").String())
+			log.Info().Msgf(`Load schema "%v" for channel "%v" succeed.`, item.Get("name").String(), channel)
 		}
 	}
-	log.Info().Msgf("Loaded %v schemas.", len(schemas))
+	schemasMap[channel] = schemas
+	log.Info().Msgf(`Loaded %v schemas for channel "%v".`, len(schemas), channel)
 }

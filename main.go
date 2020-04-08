@@ -7,13 +7,18 @@ func init() {
 }
 
 func main() {
-	wsEnd := make(chan int)
-	go initWebsocket(wsEnd)
+	wsAllEnd := make(chan int)
+	wsCommandEnd := make(chan int)
+	enableWebsocket()
+	go initWebsocket(wsAllEnd, "/all")
+	go initWebsocket(wsCommandEnd, "/command")
 	go initHTTP()
 	for {
 		select {
-		case <-wsEnd:
-			go initWebsocket(wsEnd)
+		case <-wsAllEnd:
+			go initWebsocket(wsAllEnd, "/all")
+		case <-wsCommandEnd:
+			go initWebsocket(wsCommandEnd, "/command")
 		}
 	}
 }
