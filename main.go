@@ -1,24 +1,23 @@
 package main
 
+import (
+	"github.com/gorilla/websocket"
+)
+
+var wsConns map[string]*websocket.Conn
+
 func init() {
 	initConfig()
 	initSchema()
 	initSession()
+	wsConns = make(map[string]*websocket.Conn)
 }
 
 func main() {
-	wsAllEnd := make(chan int)
-	wsCommandEnd := make(chan int)
+	done := make(chan bool)
 	enableWebsocket()
-	go initWebsocket(wsAllEnd, "/all")
-	go initWebsocket(wsCommandEnd, "/command")
+	go startWebsocket("/all")
+	go startWebsocket("/command")
 	go initHTTP()
-	for {
-		select {
-		case <-wsAllEnd:
-			go initWebsocket(wsAllEnd, "/all")
-		case <-wsCommandEnd:
-			go initWebsocket(wsCommandEnd, "/command")
-		}
-	}
+	<-done
 }

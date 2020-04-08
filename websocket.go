@@ -9,33 +9,6 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-var wsConns map[string]*websocket.Conn
-
-func initWebsocket(wsEnd chan int, channel string) {
-	if wsConns == nil {
-		wsConns = make(map[string]*websocket.Conn)
-	}
-	log.Info().Msgf(`Connecting websocket to channel "%v"...`, channel)
-	wsConn, _, err := websocket.DefaultDialer.Dial(
-		fmt.Sprintf(
-			"%s%s?authKey=%s&sessionKey=%s",
-			cfg.Get("mirai.wsBaseURL").String(),
-			channel,
-			cfg.Get("mirai.authKey").String(),
-			session,
-		),
-		nil,
-	)
-	if err != nil {
-		log.Error().Msgf(`Connect websocket to channel "%v" erred. %v`, channel, err)
-		wsEnd <- 1
-		return
-	}
-	wsConns[channel] = wsConn
-	log.Info().Msgf(`Websocket connected to channel "%v".`, channel)
-	startReadMessage(wsEnd, channel)
-}
-
 func enableWebsocket() {
 	client := resty.New()
 	client.SetCloseConnection(true)
@@ -60,14 +33,40 @@ func enableWebsocket() {
 	log.Debug().Msgf("%v", resp)
 }
 
-func startReadMessage(wsEnd chan int, channel string) {
+func startWebsocket(channel string) {
+	for {
+		connectWebsocket(channel)
+	}
+}
+
+func connectWebsocket(channel string) {
+	log.Info().Msgf(`Connecting websocket to channel "%v"...`, channel)
+	wsConn, _, err := websocket.DefaultDialer.Dial(
+		fmt.Sprintf(
+			"%s%s?authKey=%s&sessionKey=%s",
+			cfg.Get("mirai.wsBaseURL").String(),
+			channel,
+			cfg.Get("mirai.authKey").String(),
+			session,
+		),
+		nil,
+	)
+	if err != nil {
+		log.Error().Msgf(`Connect websocket to channel "%v" erred. %v`, channel, err)
+		return
+	}
+	wsConns[channel] = wsConn
+	log.Info().Msgf(`Websocket connected to channel "%v".`, channel)
+	readWebsocket(channel)
+}
+
+func readWebsocket(channel string) {
 	wsConn := wsConns[channel]
 	for {
 		messageType, message, err := wsConn.ReadMessage()
 		if err != nil {
 			wsConn.Close()
 			log.Error().Msgf(`Listen websocket from channel "%v" erred. %v`, channel, err)
-			wsEnd <- 1
 			return
 		}
 		if messageType == websocket.TextMessage {
