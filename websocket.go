@@ -35,11 +35,17 @@ func enableWebsocket() {
 
 func startWebsocket(channel string) {
 	for {
+		if wsClosed {
+			return
+		}
 		connectWebsocket(channel)
 	}
 }
 
 func connectWebsocket(channel string) {
+	if wsClosed {
+		return
+	}
 	log.Info().Msgf(`Connecting websocket to channel "%v"...`, channel)
 	wsConn, _, err := websocket.DefaultDialer.Dial(
 		fmt.Sprintf(
@@ -55,6 +61,7 @@ func connectWebsocket(channel string) {
 		log.Error().Msgf(`Connect websocket to channel "%v" erred. %v`, channel, err)
 		return
 	}
+	defer wsConn.Close()
 	wsConns[channel] = wsConn
 	log.Info().Msgf(`Websocket connected to channel "%v".`, channel)
 	readWebsocket(channel)
@@ -65,8 +72,9 @@ func readWebsocket(channel string) {
 	for {
 		messageType, message, err := wsConn.ReadMessage()
 		if err != nil {
-			wsConn.Close()
-			log.Error().Msgf(`Listen websocket from channel "%v" erred. %v`, channel, err)
+			if !wsClosed {
+				log.Error().Msgf(`Listen websocket from channel "%v" erred. %v`, channel, err)
+			}
 			return
 		}
 		if messageType == websocket.TextMessage {
