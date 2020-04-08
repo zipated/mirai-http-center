@@ -27,7 +27,7 @@ func initWebsocket(wsEnd chan int, channel string) {
 		nil,
 	)
 	if err != nil {
-		log.Error().Msgf(`Connect websocket erred to channel "%v". %v`, channel, err)
+		log.Error().Msgf(`Connect websocket to channel "%v" erred. %v`, channel, err)
 		wsEnd <- 1
 		return
 	}
@@ -66,12 +66,12 @@ func startReadMessage(wsEnd chan int, channel string) {
 		messageType, message, err := wsConn.ReadMessage()
 		if err != nil {
 			wsConn.Close()
-			log.Error().Msgf(`Listen websocket erred from channel "%v". %v`, channel, err)
+			log.Error().Msgf(`Listen websocket from channel "%v" erred. %v`, channel, err)
 			wsEnd <- 1
 			return
 		}
 		if messageType == websocket.TextMessage {
-			log.Info().Msgf(`Receive message from websocket channel "%v".`, channel)
+			log.Info().Msgf(`Receive websocket message from channel "%v".`, channel)
 			log.Debug().Msgf("%s", message)
 			messageHandler(message, channel)
 		}
