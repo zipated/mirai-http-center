@@ -15,6 +15,9 @@ func messageHandler(message []byte, channel string) {
 		} else if result.Valid() {
 			log.Info().Msgf(`Message from channel "%v" validated with schema "%v".`, channel, schema.name)
 			postMessage(message, channel, schema.postURL)
+			if schema.block {
+				break
+			}
 		}
 	}
 }

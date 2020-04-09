@@ -13,14 +13,16 @@
       {
         "name": "default",
         "schema": {},
-        "postURL": "http://127.0.0.1"
+        "postURL": "http://127.0.0.1",
+        "block": true
       }
     ],
     "/command": [
       {
         "name": "default",
         "schema": {},
-        "postURL": "http://127.0.0.1"
+        "postURL": "http://127.0.0.1",
+        "block": true
       }
     ]
   },

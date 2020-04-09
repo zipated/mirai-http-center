@@ -23,7 +23,7 @@ mirai-api-http 插件的前置代理。
 
 ## Config
 
-``` jsonc
+```jsonc
 {
   "log": {
     "level": "info" // 日志等级，包含 trace、debug、info、warn、error、fatal 和 panic，默认为 info
@@ -35,18 +35,22 @@ mirai-api-http 插件的前置代理。
     "qq": 1234567890 // bot qq 号
   },
   "schemas": {
-    "/all": [ // 用于筛选 /all 频道（接收事件和消息）消息的 shcema 列表，至少应存在一个，否则不会有消息上报
+    "/all": [
+      // 用于筛选 /all 频道（接收事件和消息）消息的 shcema 列表，至少应存在一个，否则不会有消息上报
       {
         "name": "default", // schema 名称
         "schema": {}, // schema 内容
-        "postURL": "http://127.0.0.1" // 匹配到 chema 时的数据上报地址
+        "postURL": "http://127.0.0.1", // 匹配到 schema 时的数据上报地址
+        "block": true // 匹配成功后是否阻止后面的 schema 继续匹配
       }
     ],
-    "/command": [ // 用于筛选 /command 频道（接收指令）消息的 shcema 列表，至少应存在一个，否则不会有消息上报
+    "/command": [
+      // 用于筛选 /command 频道（接收指令）消息的 shcema 列表，至少应存在一个，否则不会有消息上报
       {
         "name": "default", // schema 名称
         "schema": {}, // schema 内容
-        "postURL": "http://127.0.0.1" // 匹配到 chema 时的数据上报地址
+        "postURL": "http://127.0.0.1", // 匹配到 schema 时的数据上报地址
+        "block": true // 匹配成功后是否阻止后面的 schema 继续匹配
       }
     ]
   },
@@ -61,7 +65,7 @@ mirai-api-http 插件的前置代理。
 
 ### Docker
 
-``` bash
+```bash
 docker run -d -v /path/to/config.json:/usr/local/bin/mirai-http-center/config.json tarocch1/mirai-http-center
 ```
 

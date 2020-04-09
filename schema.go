@@ -9,6 +9,7 @@ type schema struct {
 	name    string
 	schema  *gojsonschema.Schema
 	postURL string
+	block   bool
 }
 
 var schemasMap map[string][]*schema
@@ -31,6 +32,7 @@ func loadSchema(channel string) {
 				name:    item.Get("name").String(),
 				schema:  s,
 				postURL: item.Get("postURL").String(),
+				block:   item.Get("block").Bool(),
 			}
 			schemas = append(schemas, schema)
 			log.Info().Msgf(`Load schema "%v" for channel "%v" succeed.`, item.Get("name").String(), channel)
