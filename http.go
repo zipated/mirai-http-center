@@ -28,67 +28,67 @@ func initHTTP() {
 
 func router(e *echo.Echo) {
 	// 发送好友消息
-	e.POST("/sendFriendMessage", handleStandardPostJSONRequest)
+	e.POST("/sendFriendMessage", handleSessionKeyPostJSONRequest)
 
 	// 发送群消息
-	e.POST("/sendGroupMessage", handleStandardPostJSONRequest)
+	e.POST("/sendGroupMessage", handleSessionKeyPostJSONRequest)
 
 	// 发送图片消息（通过URL）
-	e.POST("/sendImageMessage", handleStandardPostJSONRequest)
+	e.POST("/sendImageMessage", handleSessionKeyPostJSONRequest)
 
 	// 图片文件上传
 	e.POST("/uploadImage", handleUploadImage)
 
 	// 撤回消息
-	e.POST("/recall", handleStandardPostJSONRequest)
+	e.POST("/recall", handleSessionKeyPostJSONRequest)
 
 	// 获取Bot收到的消息和事件
-	e.GET("/fetchMessage", handleStandardGetRequest)
+	e.GET("/fetchMessage", handleSessionKeyGetRequest)
 
 	// 通过messageId获取一条被缓存的消息
-	e.GET("/messageFromId", handleStandardGetRequest)
+	e.GET("/messageFromId", handleSessionKeyGetRequest)
 
 	// 获取好友列表
-	e.GET("/friendList", handleStandardGetRequest)
+	e.GET("/friendList", handleSessionKeyGetRequest)
 
 	// 获取群列表
-	e.GET("/groupList", handleStandardGetRequest)
+	e.GET("/groupList", handleSessionKeyGetRequest)
 
 	// 获取群成员列表
-	e.GET("/memberList", handleStandardGetRequest)
+	e.GET("/memberList", handleSessionKeyGetRequest)
 
 	// 群全体禁言
-	e.POST("/muteAll", handleStandardPostJSONRequest)
+	e.POST("/muteAll", handleSessionKeyPostJSONRequest)
 
 	// 群解除全体禁言
-	e.POST("/unmuteAll", handleStandardPostJSONRequest)
+	e.POST("/unmuteAll", handleSessionKeyPostJSONRequest)
 
 	// 群禁言群成员
-	e.POST("/mute", handleStandardPostJSONRequest)
+	e.POST("/mute", handleSessionKeyPostJSONRequest)
 
 	// 群解除群成员禁言
-	e.POST("/unmute", handleStandardPostJSONRequest)
+	e.POST("/unmute", handleSessionKeyPostJSONRequest)
 
 	// 移除群成员
-	e.POST("/kick", handleStandardPostJSONRequest)
+	e.POST("/kick", handleSessionKeyPostJSONRequest)
 
 	// 群设置
-	e.POST("/groupConfig", handleStandardPostJSONRequest)
+	e.POST("/groupConfig", handleSessionKeyPostJSONRequest)
 
 	// 获取群设置
-	e.GET("/groupConfig", handleStandardGetRequest)
+	e.GET("/groupConfig", handleSessionKeyGetRequest)
 
 	// 修改群员资料
-	e.POST("/memberInfo", handleStandardPostJSONRequest)
+	e.POST("/memberInfo", handleSessionKeyPostJSONRequest)
 
 	// 获取群员资料
-	e.GET("/memberInfo", handleStandardGetRequest)
+	e.GET("/memberInfo", handleSessionKeyGetRequest)
 
 	// 获取指定Session的配置
-	e.GET("/config", handleStandardGetRequest)
+	e.GET("/config", handleSessionKeyGetRequest)
 
 	// 设置指定Session的配置
-	e.POST("/config", handleStandardPostJSONRequest)
+	e.POST("/config", handleSessionKeyPostJSONRequest)
 
 	// 注册指令
 	e.POST("/command/register", handleAuthKeyPostJSONRequest)
@@ -97,52 +97,31 @@ func router(e *echo.Echo) {
 	e.POST("/command/send", handleAuthKeyPostJSONRequest)
 
 	// 获取Mangers
-	e.GET("/managers", handleGetRequest)
+	e.GET("/managers", handlePureGetRequest)
 }
 
 // post + sessionKey
-func handleStandardPostJSONRequest(ctx echo.Context) error {
-	log.Info().Msgf(`Receive post http request from "%v" to "%v".`, ctx.RealIP(), ctx.Path())
-	bodyBytes, _ := ioutil.ReadAll(ctx.Request().Body)
-	log.Debug().Msgf("%s", bodyBytes)
-	if gjson.ValidBytes(bodyBytes) {
-		data, setBytesErr := sjson.SetBytes(bodyBytes, "sessionKey", session)
-		if setBytesErr != nil {
-			log.Warn().Msg("Http request received is not object json.")
-			log.Debug().Msgf("%v", setBytesErr)
-			return ctx.NoContent(http.StatusBadRequest)
-		}
-		client := resty.New()
-		client.SetCloseConnection(true)
-		resp, err := client.R().
-			SetHeader("Content-Type", "application/json;charset=UTF-8").
-			SetBody(data).
-			Post(cfg.Get("mirai.apiBaseURL").String() + ctx.Path())
-		if err != nil {
-			log.Error().Msgf("Forward http request erred. %v", err)
-			log.Debug().Msgf("%v", err)
-			return ctx.String(http.StatusInternalServerError, err.Error())
-		}
-		if gjson.ValidBytes(resp.Body()) {
-			log.Info().Msgf(`Forward post http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
-			log.Debug().Msgf("%v", resp)
-			return ctx.JSON(resp.StatusCode(), gjson.ParseBytes(resp.Body()).Value())
-		}
-		log.Info().Msgf(`Forward post http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
-		log.Debug().Msgf("%v", resp)
-		return ctx.String(resp.StatusCode(), string(resp.Body()))
-	}
-	log.Warn().Msg("Http post request received is not standard json.")
-	return ctx.NoContent(http.StatusBadRequest)
+func handleSessionKeyPostJSONRequest(ctx echo.Context) error {
+	return handlePostJSONRequest(ctx, "sessionKey")
 }
 
 // post + authKey
 func handleAuthKeyPostJSONRequest(ctx echo.Context) error {
+	return handlePostJSONRequest(ctx, "authKey")
+}
+
+func handlePostJSONRequest(ctx echo.Context, param string) error {
 	log.Info().Msgf(`Receive post http request from "%v" to "%v".`, ctx.RealIP(), ctx.Path())
 	bodyBytes, _ := ioutil.ReadAll(ctx.Request().Body)
 	log.Debug().Msgf("%s", bodyBytes)
 	if gjson.ValidBytes(bodyBytes) {
-		data, setBytesErr := sjson.SetBytes(bodyBytes, "authKey", cfg.Get("mirai.authKey").String())
+		var data []byte = bodyBytes
+		var setBytesErr error
+		if param == "sessionKey" {
+			data, setBytesErr = sjson.SetBytes(data, "sessionKey", session)
+		} else if param == "authKey" {
+			data, setBytesErr = sjson.SetBytes(data, "authKey", cfg.Get("mirai.authKey").String())
+		}
 		if setBytesErr != nil {
 			log.Warn().Msg("Http request received is not object json.")
 			log.Debug().Msgf("%v", setBytesErr)
@@ -173,38 +152,33 @@ func handleAuthKeyPostJSONRequest(ctx echo.Context) error {
 }
 
 // get + sessionKey
-func handleStandardGetRequest(ctx echo.Context) error {
-	log.Info().Msgf(`Receive get http request from "%v" to "%v".`, ctx.RealIP(), ctx.Path())
-	log.Debug().Msgf("%v", ctx.QueryString())
-	client := resty.New()
-	client.SetCloseConnection(true)
-	resp, err := client.R().
-		SetHeader("Content-Type", "application/json;charset=UTF-8").
-		SetQueryParam("sessionKey", session).
-		Get(cfg.Get("mirai.apiBaseURL").String() + ctx.Path() + "?" + ctx.QueryString())
-	if err != nil {
-		log.Error().Msgf("Forward get http request erred. %v", err)
-		return ctx.String(http.StatusInternalServerError, err.Error())
-	}
-	if gjson.ValidBytes(resp.Body()) {
-		log.Info().Msgf(`Forward get http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
-		log.Debug().Msgf("%v", resp)
-		return ctx.JSON(resp.StatusCode(), gjson.ParseBytes(resp.Body()).Value())
-	}
-	log.Info().Msgf(`Forward get http request to "%v", return code %v.`, ctx.Path(), resp.StatusCode())
-	log.Debug().Msgf("%v", resp)
-	return ctx.String(resp.StatusCode(), string(resp.Body()))
+func handleSessionKeyGetRequest(ctx echo.Context) error {
+	return handleGetRequest(ctx, "sessionKey")
+}
+
+// get + authKey
+func handleAuthKeyGetRequest(ctx echo.Context) error {
+	return handleGetRequest(ctx, "authKey")
 }
 
 // get
-func handleGetRequest(ctx echo.Context) error {
+func handlePureGetRequest(ctx echo.Context) error {
+	return handleGetRequest(ctx, "")
+}
+
+// get
+func handleGetRequest(ctx echo.Context, param string) error {
 	log.Info().Msgf(`Receive get http request from "%v" to "%v".`, ctx.RealIP(), ctx.Path())
 	log.Debug().Msgf("%v", ctx.QueryString())
 	client := resty.New()
 	client.SetCloseConnection(true)
-	resp, err := client.R().
-		SetHeader("Content-Type", "application/json;charset=UTF-8").
-		Get(cfg.Get("mirai.apiBaseURL").String() + ctx.Path() + "?" + ctx.QueryString())
+	req := client.R().SetHeader("Content-Type", "application/json;charset=UTF-8")
+	if param == "sessionKey" {
+		req = req.SetQueryParam("sessionKey", session)
+	} else if param == "authKey" {
+		req = req.SetQueryParam("authKey", cfg.Get("mirai.authKey").String())
+	}
+	resp, err := req.Get(cfg.Get("mirai.apiBaseURL").String() + ctx.Path() + "?" + ctx.QueryString())
 	if err != nil {
 		log.Error().Msgf("Forward get http request erred. %v", err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
