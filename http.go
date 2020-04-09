@@ -115,7 +115,7 @@ func handleStandardPostJSONRequest(ctx echo.Context) error {
 		client := resty.New()
 		client.SetCloseConnection(true)
 		resp, err := client.R().
-			SetHeader("Content-Type", "application/json").
+			SetHeader("Content-Type", "application/json;charset=UTF-8").
 			SetBody(data).
 			Post(cfg.Get("mirai.apiBaseURL").String() + ctx.Path())
 		if err != nil {
@@ -151,7 +151,7 @@ func handleAuthKeyPostJSONRequest(ctx echo.Context) error {
 		client := resty.New()
 		client.SetCloseConnection(true)
 		resp, err := client.R().
-			SetHeader("Content-Type", "application/json").
+			SetHeader("Content-Type", "application/json;charset=UTF-8").
 			SetBody(data).
 			Post(cfg.Get("mirai.apiBaseURL").String() + ctx.Path())
 		if err != nil {
@@ -179,6 +179,7 @@ func handleStandardGetRequest(ctx echo.Context) error {
 	client := resty.New()
 	client.SetCloseConnection(true)
 	resp, err := client.R().
+		SetHeader("Content-Type", "application/json;charset=UTF-8").
 		SetQueryParam("sessionKey", session).
 		Get(cfg.Get("mirai.apiBaseURL").String() + ctx.Path() + "?" + ctx.QueryString())
 	if err != nil {
@@ -201,7 +202,9 @@ func handleGetRequest(ctx echo.Context) error {
 	log.Debug().Msgf("%v", ctx.QueryString())
 	client := resty.New()
 	client.SetCloseConnection(true)
-	resp, err := client.R().Get(cfg.Get("mirai.apiBaseURL").String() + ctx.Path() + "?" + ctx.QueryString())
+	resp, err := client.R().
+		SetHeader("Content-Type", "application/json;charset=UTF-8").
+		Get(cfg.Get("mirai.apiBaseURL").String() + ctx.Path() + "?" + ctx.QueryString())
 	if err != nil {
 		log.Error().Msgf("Forward get http request erred. %v", err)
 		return ctx.String(http.StatusInternalServerError, err.Error())
@@ -237,7 +240,7 @@ func handleUploadImage(ctx echo.Context) error {
 	client := resty.New()
 	client.SetCloseConnection(true)
 	resp, err := client.R().
-		SetHeader("Content-Type", "multipart/form-data").
+		SetHeader("Content-Type", "multipart/form-data;charset=UTF-8").
 		SetFormData(map[string]string{
 			"sessionKey": session,
 			"type":       t,
