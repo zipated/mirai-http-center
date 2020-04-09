@@ -18,10 +18,10 @@ func initConfig() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 	configPath, _ := filepath.Abs(filepath.Join(filepath.Dir(os.Args[0]), "config.json"))
 	file, err := os.Open(configPath)
-	defer file.Close()
 	if err != nil {
 		log.Fatal().Msgf("Open config file failed. %v", err)
 	}
+	defer file.Close()
 	cfgBytes, _ := ioutil.ReadAll(file)
 	if gjson.ValidBytes(cfgBytes) {
 		cfg = gjson.ParseBytes(cfgBytes)
