@@ -30,6 +30,9 @@ func router(e *echo.Echo) {
 	// 发送好友消息
 	e.POST("/sendFriendMessage", handleSessionKeyPostJSONRequest)
 
+	// 发送临时会话消息
+	e.POST("/sendTempMessage", handleSessionKeyPostJSONRequest)
+
 	// 发送群消息
 	e.POST("/sendGroupMessage", handleSessionKeyPostJSONRequest)
 
@@ -44,9 +47,15 @@ func router(e *echo.Echo) {
 
 	// 获取Bot收到的消息和事件
 	e.GET("/fetchMessage", handleSessionKeyGetRequest)
+	e.GET("/fetchLatestMessage", handleSessionKeyGetRequest)
+	e.GET("/peekMessage", handleSessionKeyGetRequest)
+	e.GET("/peekLatestMessage", handleSessionKeyGetRequest)
 
 	// 通过messageId获取一条被缓存的消息
 	e.GET("/messageFromId", handleSessionKeyGetRequest)
+
+	// 查看缓存的消息总数
+	e.GET("/countMessage", handleSessionKeyGetRequest)
 
 	// 获取好友列表
 	e.GET("/friendList", handleSessionKeyGetRequest)
