@@ -3,8 +3,14 @@ FROM golang:latest as builder
 WORKDIR /go/src
 COPY . .
 
-RUN go mod download
-RUN CGO_ENABLED=0 go build
+ARG VERSION
+ARG COMMIT_ID
+
+RUN set -ex && \
+    go mod download && \
+    GO_VERSION=$(go version) && \
+    BUILD_TIME=$(date) && \
+    CGO_ENABLED=0 go build -ldflags "-X 'main.version=${VERSION}' -X 'main.goVersion=${GO_VERSION}' -X 'main.buildTime=${BUILD_TIME}' -X 'main.commitID=${COMMIT_ID}'"
 
 FROM alpine:latest
 

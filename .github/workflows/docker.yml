@@ -27,10 +27,10 @@ jobs:
           ref: ${{ github.ref }}
       - id: build
         name: Build ${{ steps.tag_name.outputs.tag }}
-        run: docker build -t tarocch1/mirai-http-center:${{ steps.tag_name.outputs.tag }} .
+        run: docker build -t tarocch1/mirai-http-center:${{ steps.tag_name.outputs.tag }} --build-arg VERSION=${{ steps.tag_name.outputs.tag }} --build-arg COMMIT_ID=${{ github.sha }} .
       - id: build_latest
         name: Build latest
-        run: docker build -t tarocch1/mirai-http-center:latest .
+        run: docker build -t tarocch1/mirai-http-center:latest --build-arg VERSION=${{ steps.tag_name.outputs.tag }} --build-arg COMMIT_ID=${{ github.sha }} .
       - id: login
         name: Docker login
         run: docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_ACCESSTOKEN }}"
