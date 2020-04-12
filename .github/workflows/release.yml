@@ -17,30 +17,28 @@ jobs:
         uses: actions/setup-go@master
         with:
           go-version: '1.14'
-      - id: go_mod
-        name: go mod download
-        run: go mod download
+      - id: setup_nodejs
+        name: Setup node.js
+        uses: actions/setup-node@master
+        with:
+          node-version: 12
+      - id: npm_ci
+        name: npm ci
+        run: npm ci
+      - id: tag_name
+        name: Get tag name
+        uses: ./.github/actions/tag-name
+        with:
+          ref: ${{ github.ref }}
       - id: build
         name: Build
-        run: |
-          CGO_ENABLED=0 GOOS=linux GOARCH=386 go build -o mirai-http-center_linux_32
-          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o mirai-http-center_linux_64
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=6 go build -o mirai-http-center_linux_armv6
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm GOARM=7 go build -o mirai-http-center_linux_armv7
-          CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o mirai-http-center_linux_arm64
-          CGO_ENABLED=0 GOOS=darwin GOARCH=amd64 go build -o mirai-http-center_macos
-          CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -o mirai-http-center_windows_32.exe
-          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -o mirai-http-center_windows_64.exe
+        run: bash ./.github/actions/release/build.sh
+        env:
+          VERSION: ${{ steps.tag_name.outputs.tag }}
+          COMMIT_ID: ${{ github.sha }}
       - id: compress
         name: Compress
-        run: |
-          zip mirai-http-center_linux_32.zip mirai-http-center_linux_32 config.json
-          zip mirai-http-center_linux_64.zip mirai-http-center_linux_64 config.json
-          zip mirai-http-center_linux_arm.zip mirai-http-center_linux_armv6 mirai-http-center_linux_armv7 config.json
-          zip mirai-http-center_linux_arm64.zip mirai-http-center_linux_arm64 config.json
-          zip mirai-http-center_macos.zip mirai-http-center_macos config.json
-          zip mirai-http-center_windows_32.zip mirai-http-center_windows_32.exe config.json
-          zip mirai-http-center_windows_64.zip mirai-http-center_windows_64.exe config.json
+        run: bash ./.github/actions/release/compress.sh
       - id: create_release
         name: Create Release
         uses: actions/create-release@master
