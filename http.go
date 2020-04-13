@@ -110,6 +110,12 @@ func router(e *echo.Echo) {
 
 	// 获取Mangers
 	e.GET("/managers", handlePureGetRequest)
+
+	// 响应添加好友申请
+	e.POST("/resp/newFriendRequestEvent", handleSessionKeyPostJSONRequest)
+
+	// 响应用户入群申请
+	e.POST("/resp/memberJoinRequestEvent", handleSessionKeyPostJSONRequest)
 }
 
 // post + sessionKey
