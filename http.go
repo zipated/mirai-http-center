@@ -27,6 +27,9 @@ func initHTTP() {
 }
 
 func router(e *echo.Echo) {
+	// 获取插件信息
+	e.GET("/about", handlePureGetRequest)
+
 	// 发送好友消息
 	e.POST("/sendFriendMessage", handleSessionKeyPostJSONRequest)
 
