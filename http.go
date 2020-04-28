@@ -84,6 +84,9 @@ func router(e *echo.Echo) {
 	// 移除群成员
 	e.POST("/kick", handleSessionKeyPostJSONRequest)
 
+	// 退出群聊
+	e.POST("/quit", handleSessionKeyPostJSONRequest)
+
 	// 群设置
 	e.POST("/groupConfig", handleSessionKeyPostJSONRequest)
 
