@@ -18,8 +18,15 @@ func initHTTP() {
 	e.Logger.SetOutput(ioutil.Discard)
 	e.Use(middleware.Recover())
 	e.Use(middleware.KeyAuth(func(key string, c echo.Context) (bool, error) {
+		if c.Path() == "/_healthcheck" {
+			return key == "_healthcheck", nil
+		}
 		return key == authKey, nil
 	}))
+
+	e.GET("/_healthcheck", func(ctx echo.Context) error {
+		return ctx.NoContent(http.StatusOK)
+	})
 
 	router(e)
 

@@ -19,8 +19,11 @@ COPY --from=builder /go/src/mirai-http-center .
 COPY config.json .
 
 RUN set -ex && \
-    apk --no-cache add ca-certificates && \
+    apk --no-cache add ca-certificates curl && \
     chmod +x /usr/local/bin/mirai-http-center/mirai-http-center
+
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+  CMD curl -fs -H 'authorization: Bearer _healthcheck' http://localhost/_healthcheck || exit 1
 
 ENV PATH /usr/local/bin/mirai-http-center:$PATH
 
