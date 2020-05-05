@@ -30,6 +30,8 @@ func initHTTP() {
 
 	router(e)
 
+	log.Info().Msgf("Starting HTTP server on %v.", cfg.Get("http.host").String())
+
 	log.Fatal().Msgf("Start HTTP server failed. %v", e.Start(cfg.Get("http.host").String()))
 }
 
